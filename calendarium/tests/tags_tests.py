@@ -36,10 +36,11 @@ class GetUpcomingEventsTestCase(TestCase):
         self.occurrence = mixer.blend(
             'calendarium.Occurrence',
             start=timezone.now() + timezone.timedelta(days=1),
-            end=timezone.now() + timezone.timedelta(days=2),
+            end=timezone.now() + timezone.timedelta(days=1),
             original_start=timezone.now() + timezone.timedelta(seconds=20),
             event__start=timezone.now() + timezone.timedelta(days=1),
-            event__end=timezone.now() + timezone.timedelta(days=2),
+            event__end=timezone.now() + timezone.timedelta(days=1),
+            title='foo_occurrence',
         )
 
     def test_tag(self):
@@ -54,4 +55,4 @@ class GetWeekURLTestCase(TestCase):
     def test_tag(self):
         result = get_week_URL(
             timezone.datetime.strptime('2016-02-07', '%Y-%m-%d'))
-        self.assertEqual(result, u'/2016/week/5/')
+        self.assertEqual(result, '/2016/week/5/')

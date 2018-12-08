@@ -1,60 +1,62 @@
 """URLs for the ``calendarium`` app."""
-from django.conf.urls import url
+from django.urls import path, re_path
 
 from . import views
 
+app_name = "calendarium"
 
 urlpatterns = [
     # event views
-    url(r'^event/create/$',
+    path('event/create/',
         views.EventCreateView.as_view(),
         name='calendar_event_create'),
 
-    url(r'^event/(?P<pk>\d+)/$',
+    path('event/<int:pk>/',
         views.EventDetailView.as_view(),
         name='calendar_event_detail'),
 
-    url(r'^event/(?P<pk>\d+)/update/$',
+    path('event/<int:pk>/update/',
         views.EventUpdateView.as_view(),
         name='calendar_event_update'),
 
-    url(r'^event/(?P<pk>\d+)/delete/$',
+    path('event/<int:pk>/delete/',
         views.EventDeleteView.as_view(),
         name='calendar_event_delete'),
 
     # occurrence views
-    url(r'^event/(?P<pk>\d+)/date/(?P<year>\d+)/(?P<month>\d+)/(?P<day>\d+)/$',
+    re_path(
+        r'^event/(?P<pk>\d+)/date/(?P<year>\d+)/(?P<month>\d+)/(?P<day>\d+)/$',
         views.OccurrenceDetailView.as_view(),
         name='calendar_occurrence_detail'),
 
-    url(
+    re_path(
         r'^event/(?P<pk>\d+)/date/(?P<year>\d+)/(?P<month>\d+)/(?P<day>\d+)/update/$',  # NOPEP8
         views.OccurrenceUpdateView.as_view(),
         name='calendar_occurrence_update'),
 
-    url(
+    re_path(
         r'^event/(?P<pk>\d+)/date/(?P<year>\d+)/(?P<month>\d+)/(?P<day>\d+)/delete/$',  # NOPEP8
         views.OccurrenceDeleteView.as_view(),
         name='calendar_occurrence_delete'),
 
     # calendar views
-    url(r'^(?P<year>\d+)/(?P<month>\d+)/$',
+    re_path(r'^(?P<year>\d+)/(?P<month>\d+)/$',
         views.MonthView.as_view(),
         name='calendar_month'),
 
-    url(r'^(?P<year>\d+)/week/(?P<week>\d+)/$',
+    re_path(r'^(?P<year>\d+)/week/(?P<week>\d+)/$',
         views.WeekView.as_view(),
         name='calendar_week'),
 
-    url(r'^(?P<year>\d+)/(?P<month>\d+)/(?P<day>\d+)/$',
+    re_path(r'^(?P<year>\d+)/(?P<month>\d+)/(?P<day>\d+)/$',
         views.DayView.as_view(),
         name='calendar_day'),
 
-    url(r'^get-events/$',
+    path('get-events/',
         views.UpcomingEventsAjaxView.as_view(),
         name='calendar_upcoming_events'),
 
-    url(r'^$',
+    path('',
         views.CalendariumRedirectView.as_view(),
         name='calendar_current_month'),
 

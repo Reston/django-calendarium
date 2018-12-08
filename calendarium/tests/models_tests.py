@@ -188,25 +188,27 @@ class OccurrenceTestCase(TestCase):
         occurrence = mixer.blend('calendarium.Occurrence')
         occurrence.delete_period('all')
         self.assertEqual(Occurrence.objects.all().count(), 0, msg=(
-            'Should delete only the first occurrence.'))
+            'Should delete only the first occurrence. 1'))
 
         event = mixer.blend(
             'calendarium.Event', start=now() - timedelta(hours=0),
-            end=now() - timedelta(hours=0))
-        occurrence = mixer.blend(
-            'calendarium.Occurrence', event=event,
-            start=now() - timedelta(hours=0), end=now() - timedelta(hours=0))
-        occurrence.delete_period('this one')
-        self.assertEqual(Occurrence.objects.all().count(), 0, msg=(
-            'Should delete only the first occurrence.'))
-
-        event = mixer.blend(
-            'calendarium.Event', start=now() - timedelta(hours=0),
-            end=now() - timedelta(hours=0))
+            end=now() + timedelta(hours=1))
         event.save()
         occurrence = mixer.blend(
-            'calendarium.Occurrence', event=event,
-            start=now() - timedelta(hours=0), end=now() - timedelta(hours=0))
+            'calendarium.Occurrence', event=event, original_start=now(),
+            original_end=now() + timedelta(days=1), title='foo_occurrence')
+
+        occurrence.delete_period('this one')
+        self.assertEqual(Occurrence.objects.all().count(), 0, msg=(
+            'Should delete only the first occurrence. 2'))
+
+        event = mixer.blend(
+            'calendarium.Event', start=now() - timedelta(hours=0),
+            end=now() + timedelta(hours=1))
+        event.save()
+        occurrence = mixer.blend(
+            'calendarium.Occurrence', event=event, original_start=now(),
+            original_end=now() + timedelta(days=1), title='foo_occurrence')
         occurrence.delete_period('following')
         self.assertEqual(Event.objects.all().count(), 0, msg=(
             'Should delete the event and the occurrence.'))

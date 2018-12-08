@@ -4,7 +4,7 @@ As you know, every app must be hooked into yout main ``urls.py`` so that
 you can actually reach the app's views (provided it has any views, of course).
 
 """
-from django.conf.urls import include, url
+from django.urls import include, path
 from django.contrib import admin
 
 
@@ -12,6 +12,6 @@ admin.autodiscover()
 
 
 urlpatterns = [
-    url(r'^admin/', include(admin.site.urls)),
-    url(r'^', include('calendarium.urls')),
+    path('admin/', admin.site.urls),
+    path('', include('calendarium.urls')),
 ]

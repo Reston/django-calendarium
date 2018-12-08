@@ -3,7 +3,10 @@ import calendar
 from dateutil.relativedelta import relativedelta
 
 from django.contrib.auth.decorators import permission_required
-from django.core.urlresolvers import reverse
+try:
+    from django.core.urlresolvers import reverse
+except ImportError:  # >= django 2.0
+    from django.urls import reverse
 from django.forms.models import model_to_dict
 from django.http import Http404, HttpResponseRedirect
 from django.utils.decorators import method_decorator
@@ -28,6 +31,7 @@ from .utils import monday_of_week
 
 class CategoryMixin(object):
     """Mixin to handle category filtering by category id."""
+
     def dispatch(self, request, *args, **kwargs):
         if request.GET.get('category'):
             try:
@@ -53,8 +57,9 @@ class CalendariumRedirectView(RedirectView):
     permanent = False
 
     def get_redirect_url(self, **kwargs):
-        return reverse('calendar_month', kwargs={'year': now().year,
-                                                 'month': now().month})
+        return reverse(
+            'calendarium:calendar_month',
+            kwargs={'year': now().year, 'month': now().month})
 
 
 class MonthView(CategoryMixin, TemplateView):
@@ -72,17 +77,17 @@ class MonthView(CategoryMixin, TemplateView):
                     days=31)
                 kwargs.update({'year': new_date.year, 'month': new_date.month})
                 return HttpResponseRedirect(
-                    reverse('calendar_month', kwargs=kwargs))
+                    reverse('calendarium:calendar_month', kwargs=kwargs))
             elif request.POST.get('previous'):
                 new_date = datetime(self.year, self.month, 1) - timedelta(
                     days=1)
                 kwargs.update({'year': new_date.year, 'month': new_date.month})
                 return HttpResponseRedirect(
-                    reverse('calendar_month', kwargs=kwargs))
+                    reverse('calendarium:calendar_month', kwargs=kwargs))
             elif request.POST.get('today'):
                 kwargs.update({'year': now().year, 'month': now().month})
                 return HttpResponseRedirect(
-                    reverse('calendar_month', kwargs=kwargs))
+                    reverse('calendarium:calendar_month', kwargs=kwargs))
         if request.is_ajax():
             self.template_name = 'calendarium/partials/calendar_month.html'
         return super(MonthView, self).dispatch(request, *args, **kwargs)
@@ -144,20 +149,20 @@ class WeekView(CategoryMixin, TemplateView):
                 kwargs.update(
                     {'year': date.year, 'week': date.date().isocalendar()[1]})
                 return HttpResponseRedirect(
-                    reverse('calendar_week', kwargs=kwargs))
+                    reverse('calendarium:calendar_week', kwargs=kwargs))
             elif request.POST.get('previous'):
                 date = monday_of_week(self.year, self.week) - timedelta(days=7)
                 kwargs.update(
                     {'year': date.year, 'week': date.date().isocalendar()[1]})
                 return HttpResponseRedirect(
-                    reverse('calendar_week', kwargs=kwargs))
+                    reverse('calendarium:calendar_week', kwargs=kwargs))
             elif request.POST.get('today'):
                 kwargs.update({
                     'year': now().year,
                     'week': now().date().isocalendar()[1],
                 })
                 return HttpResponseRedirect(
-                    reverse('calendar_week', kwargs=kwargs))
+                    reverse('calendarium:calendar_week', kwargs=kwargs))
         if request.is_ajax():
             self.template_name = 'calendarium/partials/calendar_week.html'
         return super(WeekView, self).dispatch(request, *args, **kwargs)
@@ -206,7 +211,7 @@ class DayView(CategoryMixin, TemplateView):
                 kwargs.update(
                     {'year': date.year, 'month': date.month, 'day': date.day})
                 return HttpResponseRedirect(
-                    reverse('calendar_day', kwargs=kwargs))
+                    reverse('calendarium:calendar_day', kwargs=kwargs))
             elif request.POST.get('previous'):
                 date = self.date - timedelta(days=1)
                 kwargs.update({
@@ -215,7 +220,7 @@ class DayView(CategoryMixin, TemplateView):
                     'day': date.day,
                 })
                 return HttpResponseRedirect(
-                    reverse('calendar_day', kwargs=kwargs))
+                    reverse('calendarium:calendar_day', kwargs=kwargs))
             elif request.POST.get('today'):
                 kwargs.update({
                     'year': now().year,
@@ -223,7 +228,7 @@ class DayView(CategoryMixin, TemplateView):
                     'day': now().day,
                 })
                 return HttpResponseRedirect(
-                    reverse('calendar_day', kwargs=kwargs))
+                    reverse('calendarium:calendar_day', kwargs=kwargs))
         if request.is_ajax():
             self.template_name = 'calendarium/partials/calendar_day.html'
         return super(DayView, self).dispatch(request, *args, **kwargs)
@@ -257,7 +262,8 @@ class EventMixin(object):
         return super(EventMixin, self).dispatch(request, *args, **kwargs)
 
     def get_success_url(self):
-        return reverse('calendar_event_detail', kwargs={'pk': self.object.pk})
+        return reverse(
+            'calendarium:calendar_event_detail', kwargs={'pk': self.object.pk})
 
 
 class EventUpdateView(EventMixin, UpdateView):
@@ -272,8 +278,9 @@ class EventCreateView(EventMixin, CreateView):
 
 class EventDeleteView(EventMixin, DeleteView):
     """View to delete an event."""
+
     def get_success_url(self):
-        return reverse('calendar_current_month')
+        return reverse('calendarium:calendar_current_month')
 
 
 class OccurrenceViewMixin(object):
@@ -319,7 +326,7 @@ class OccurrenceViewMixin(object):
         return kwargs
 
     def get_success_url(self):
-        return reverse('calendar_occurrence_update', kwargs={
+        return reverse('calendarium:calendar_occurrence_update', kwargs={
             'pk': self.object.event.pk,
             'year': self.object.start.year,
             'month': self.object.start.month,
@@ -329,6 +336,7 @@ class OccurrenceViewMixin(object):
 
 class OccurrenceDeleteView(OccurrenceViewMixin, DeleteView):
     """View to delete an occurrence of an event."""
+
     def delete(self, request, *args, **kwargs):
         self.object = self.get_object()
         decision = self.request.POST.get('decision')
@@ -344,7 +352,7 @@ class OccurrenceDeleteView(OccurrenceViewMixin, DeleteView):
         return ctx
 
     def get_success_url(self):
-        return reverse('calendar_current_month')
+        return reverse('calendarium:calendar_current_month')
 
 
 class OccurrenceDetailView(OccurrenceViewMixin, DetailView):

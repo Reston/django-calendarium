@@ -21,8 +21,9 @@ class OccurrenceFormTestCase(TestCase):
         # single, not recurring event
         self.event = mixer.blend('calendarium.Event', rule=None,
                                  end_recurring_period=None)
-        self.event_occurrence = next(self.event.get_occurrences(
-            self.event.start))
+
+        event_occurrences = self.event.get_occurrences(self.event.start)
+        self.event_occurrence = next(event_occurrences, None)
 
         # recurring event weekly on mondays over 6 weeks
         self.rule = mixer.blend(

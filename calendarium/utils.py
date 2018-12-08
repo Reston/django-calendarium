@@ -48,6 +48,7 @@ class OccurrenceReplacer(object):
     the generated ones that are equivalent.  This class makes this easier.
 
     """
+
     def __init__(self, persisted_occurrences):
         lookup = [
             ((occ.event, occ.original_start, occ.original_end), occ) for

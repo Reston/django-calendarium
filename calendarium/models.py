@@ -12,7 +12,10 @@ import json
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-from django.core.urlresolvers import reverse
+try:
+    from django.core.urlresolvers import reverse
+except ImportError:  # >= django 2.0
+    from django.urls import reverse
 from django.db import models
 from django.db.models import Q
 from django.template.defaultfilters import slugify
@@ -30,6 +33,7 @@ from .utils import OccurrenceReplacer
 
 class EventModelManager(models.Manager):
     """Custom manager for the ``Event`` model class."""
+
     def get_occurrences(self, start, end, category=None):
         """Returns a list of events and occurrences for the given period."""
         # we always want the time of start and end to be at 00:00
@@ -46,10 +50,7 @@ class EventModelManager(models.Manager):
         # end_recurring_period.
         # For events without a rule, I fetch only the relevant ones.
 
-        # Django < 1.6 compatibility
-        getQuerySet = (self.get_query_set if hasattr(
-            self, 'get_query_set') else self.get_queryset)
-        qs = getQuerySet()
+        qs = self.get_queryset()
 
         if category:
             qs = qs.filter(start__lt=end)
@@ -127,6 +128,7 @@ class Event(EventModelMixin):
 
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
         verbose_name=_('Created by'),
         related_name='events',
         blank=True, null=True,
@@ -134,6 +136,7 @@ class Event(EventModelMixin):
 
     category = models.ForeignKey(
         'EventCategory',
+        on_delete=models.SET_NULL,
         verbose_name=_('Category'),
         related_name='events',
         null=True, blank=True,
@@ -141,6 +144,7 @@ class Event(EventModelMixin):
 
     rule = models.ForeignKey(
         'Rule',
+        on_delete=models.SET_NULL,
         verbose_name=_('Rule'),
         blank=True, null=True,
     )
@@ -157,6 +161,7 @@ class Event(EventModelMixin):
 
     image = FilerImageField(
         verbose_name=_('Image'),
+        on_delete=models.SET_NULL,
         related_name='calendarium_event_images',
         null=True, blank=True,
     )
@@ -164,7 +169,8 @@ class Event(EventModelMixin):
     objects = EventModelManager()
 
     def get_absolute_url(self):
-        return reverse('calendar_event_detail', kwargs={'pk': self.pk})
+        return reverse(
+            'calendarium:calendar_event_detail', kwargs={'pk': self.pk})
 
     def _create_occurrence(self, occ_start, occ_end=None):
         """Creates an Occurrence instance."""
@@ -202,11 +208,14 @@ class Event(EventModelMixin):
                 start - length, end)
 
             # chosing the first item from the generator to initiate
-            occ_start = next(occ_start_gen)
-            while not end or (end and occ_start <= end):
-                occ_end = occ_start + length
-                yield self._create_occurrence(occ_start, occ_end)
+            try:
                 occ_start = next(occ_start_gen)
+                while not end or (end and occ_start <= end):
+                    occ_end = occ_start + length
+                    yield self._create_occurrence(occ_start, occ_end)
+                    occ_start = next(occ_start_gen)
+            except StopIteration:
+                pass
         else:
             # check if event is in the period
             if (not end or self.start < end) and self.end >= start:
@@ -240,26 +249,30 @@ class Event(EventModelMixin):
         # get additional occs, that we need to take into concern
         additional_occs = occ_replacer.get_additional_occurrences(
             start, end)
-        occ = next(occurrence_gen)
-        while not end or (occ.start < end or any(additional_occs)):
-            if occ_replacer.has_occurrence(occ):
-                p_occ = occ_replacer.get_occurrence(occ)
 
-                # if the persistent occ falls into the period, replace it
-                if (end and p_occ.start < end) and p_occ.end >= start:
-                    estimated_occ = p_occ
-            else:
-                # if there is no persistent match, use the original occ
-                estimated_occ = occ
-
-            if any(additional_occs) and (
-                    estimated_occ.start == additional_occs[0].start):
-                final_occ = additional_occs.pop(0)
-            else:
-                final_occ = estimated_occ
-            if not final_occ.cancelled:
-                yield final_occ
+        try:
             occ = next(occurrence_gen)
+            while not end or (occ.start < end or any(additional_occs)):
+                if occ_replacer.has_occurrence(occ):
+                    p_occ = occ_replacer.get_occurrence(occ)
+
+                    # if the persistent occ falls into the period, replace it
+                    if (end and p_occ.start < end) and p_occ.end >= start:
+                        estimated_occ = p_occ
+                else:
+                    # if there is no persistent match, use the original occ
+                    estimated_occ = occ
+
+                if any(additional_occs) and (
+                        estimated_occ.start == additional_occs[0].start):
+                    final_occ = additional_occs.pop(0)
+                else:
+                    final_occ = estimated_occ
+                if not final_occ.cancelled:
+                    yield final_occ
+                occ = next(occurrence_gen)
+        except StopIteration:
+            pass
 
     def get_parent_category(self):
         """Returns the main category of this event."""
@@ -303,6 +316,7 @@ class EventCategory(models.Model):
 
     parent = models.ForeignKey(
         'calendarium.EventCategory',
+        on_delete=models.SET_NULL,
         verbose_name=_('Parent'),
         related_name='parents',
         null=True, blank=True,
@@ -335,11 +349,13 @@ class EventRelation(models.Model):
 
     event = models.ForeignKey(
         'Event',
+        on_delete=models.CASCADE,
         verbose_name=_("Event"),
     )
 
     content_type = models.ForeignKey(
         ContentType,
+        on_delete=models.CASCADE,
     )
 
     object_id = models.IntegerField()
@@ -375,6 +391,7 @@ class Occurrence(EventModelMixin):
     """
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
         verbose_name=_('Created by'),
         related_name='occurrences',
         blank=True, null=True,
@@ -382,6 +399,7 @@ class Occurrence(EventModelMixin):
 
     event = models.ForeignKey(
         'Event',
+        on_delete=models.CASCADE,
         verbose_name=_('Event'),
         related_name='occurrences',
     )
@@ -416,10 +434,12 @@ class Occurrence(EventModelMixin):
         gen = self.event.get_occurrences(
             self.start, self.event.end_recurring_period)
         occs = list(set([occ.pk for occ in gen]))
+
         if len(occs) == 1:
             is_only = True
         elif len(occs) > 1 and self.pk == occs[-1]:
             is_last = True
+
         if period == OCCURRENCE_DECISIONS['all']:
             # delete all persistent occurrences along with the parent event
             self.event.occurrences.all().delete()
@@ -448,7 +468,7 @@ class Occurrence(EventModelMixin):
 
     def get_absolute_url(self):
         return reverse(
-            'calendar_occurrence_detail', kwargs={
+            'calendarium:calendar_occurrence_detail', kwargs={
                 'pk': self.event.pk, 'year': self.start.year,
                 'month': self.start.month, 'day': self.start.day})
 

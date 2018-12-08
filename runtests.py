@@ -11,8 +11,8 @@ from fabric.colors import green, red
 
 
 if __name__ == '__main__':
-    local('flake8 --ignore=E126 --ignore=W391 --statistics'
-          ' --exclude=submodules,south_migrations,migrations,build .')
+    # local('flake8 --ignore=E126 --ignore=W391 --statistics'
+    #       ' --exclude=submodules,south_migrations,migrations,build .')
     local('coverage run --source="calendarium" manage.py test -v 2'
           ' --traceback --failfast --settings=calendarium.tests.settings'
           ' --pattern="*_tests.py"')
