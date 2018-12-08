@@ -13,7 +13,7 @@
 <table class="table" id="calendar-week">
     <tr>
         {% for date, occurrences, current in week %}
-            <th><a href="{% url "calendar_day" year=date|date:'Y' month=date|date:'m' day=date|date:'d' %}">{{ date|date:'D m/d' }}</a></th>
+            <th><a href="{% url "calendarium:calendar_day" year=date|date:'Y' month=date|date:'m' day=date|date:'d' %}">{{ date|date:'D m/d' }}</a></th>
         {% endfor %}
     </tr>
     <tr>
@@ -23,10 +23,10 @@
                     <span class="calendarium-day-dame">{{ date|date:'D m/d' }}</span>
                     {% for occurrence in occurrences %}
                         <p class="alert">
-                            <a href="{% url "calendar_occurrence_detail" pk=occurrence.event.pk year=occurrence.start.year month=occurrence.start.month day=occurrence.start.day %}">{{ occurrence|truncatechars:22 }}</a>
+                            <a href="{% url "calendarium:calendar_occurrence_detail" pk=occurrence.event.pk year=occurrence.start.year month=occurrence.start.month day=occurrence.start.day %}">{{ occurrence|truncatechars:22 }}</a>
                         </p>
                     {% endfor %}
-                    <a class="calendarium-day-link" href="{% url "calendar_day" year=date|date:'Y' month=date|date:'m' day=date|date:'d' %}">{% trans "View calendar day" %}</a>
+                    <a class="calendarium-day-link" href="{% url "calendarium:calendar_day" year=date|date:'Y' month=date|date:'m' day=date|date:'d' %}">{% trans "View calendar day" %}</a>
                 </div>
             </td>
         {% endfor %}

@@ -10,7 +10,7 @@
     <input class="btn btn-default" type="submit" name="next" value="{% trans "Next" %}" />
     <input class="btn btn-default" type="submit" name="today" value="{% trans "Today" %}" />
     {% if request.user.is_staff %}
-        <a href="{% url "calendar_event_create" %}">{% trans "Create new event" %}</a>
+        <a href="{% url "calendarium:calendar_event_create" %}">{% trans "Create new event" %}</a>
     {% endif %}
 </form>
 <table class="table" id="calendar-month">
@@ -31,7 +31,7 @@
                                 <span class="calendarium-date">{{ day }}</span>
                                 {% for occurrence in occurrences %}
                                     <p class="alert" style="background-color: #{{ occurrence.event.category.color }}">
-                                        <a title="{{ occurrence }}" href="{% url "calendar_occurrence_detail" pk=occurrence.event.pk year=occurrence.start.year month=occurrence.start.month day=occurrence.start.day %}">{{ occurrence|truncatechars:22 }}</a>
+                                        <a title="{{ occurrence }}" href="{% url "calendarium:calendar_occurrence_detail" pk=occurrence.event.pk year=occurrence.start.year month=occurrence.start.month day=occurrence.start.day %}">{{ occurrence|truncatechars:22 }}</a>
                                     </p>
                                 {% endfor %}
                             {% endif %}

@@ -14,5 +14,5 @@
     {{ form.as_p }}
     <input type="submit" value="{% trans "Save" %}" />
 </form>
-<a href="{% url "calendar_occurrence_delete" pk=form.instance.event.pk year=form.instance.start.year month=form.instance.start.month day=form.instance.start.day %}">{% trans "Delete" %}</a>
+<a href="{% url "calendarium:calendar_occurrence_delete" pk=form.instance.event.pk year=form.instance.start.year month=form.instance.start.month day=form.instance.start.day %}">{% trans "Delete" %}</a>
 {% endblock %}

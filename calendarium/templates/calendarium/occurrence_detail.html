@@ -23,8 +23,8 @@
 </table>
 <a href="javascript:history.back();">{% trans "back" %}</a>
 {% if request.user.is_staff %}
-    <a href="{% url "calendar_occurrence_update" pk=object.event.pk year=object.start.year month=object.start.month day=object.start.day %}">{% trans "Edit" %}</a>
-    <a href="{% url "calendar_occurrence_delete" pk=object.event.pk year=object.start.year month=object.start.month day=object.start.day %}">{% trans "Delete" %}</a>
+    <a href="{% url "calendarium:calendar_occurrence_update" pk=object.event.pk year=object.start.year month=object.start.month day=object.start.day %}">{% trans "Edit" %}</a>
+    <a href="{% url "calendarium:calendar_occurrence_delete" pk=object.event.pk year=object.start.year month=object.start.month day=object.start.day %}">{% trans "Delete" %}</a>
 {% endif %}
 {% endblock %}
 
