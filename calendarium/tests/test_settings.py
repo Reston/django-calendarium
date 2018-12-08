@@ -34,7 +34,8 @@ INSTALLED_APPS = EXTERNAL_APPS + INTERNAL_APPS + TEST_APPS
 SITE_ID = 1
 
 SECRET_KEY = 'Foobar'
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
+INTERNAL_IPS = ['127.0.0.1']
 
 DATABASES = {
     "default": {
@@ -81,7 +82,3 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
 ]
-
-PASSWORD_HASHERS = (
-    'django.contrib.auth.hashers.MD5PasswordHasher',
-)

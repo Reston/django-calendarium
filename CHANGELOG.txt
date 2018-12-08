@@ -5,6 +5,10 @@
  - Added some test cases for extra coverage
  - Fixed occurrence generation for events with multiple days
 
+=== 1.3.5 ===
+
+- Working on Django2.1 and Python 3.7
+
 === 1.3.4 ===
 
 - Prepared app for Django1.9 and Python3.5
